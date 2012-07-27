@@ -22,10 +22,12 @@ public class FragmentDeveloper extends Activity {
 		rootView.setId(android.R.id.primary);
 		setContentView(rootView);
 
-		Fragment f = new SampleFragment();
-		FragmentManager fm = getFragmentManager();
-		FragmentTransaction ft = fm.beginTransaction();
-		ft.add(android.R.id.primary, f);
-		ft.commit();
+		if (savedInstanceState == null) {
+			Fragment f = new SampleFragment();
+			FragmentManager fm = getFragmentManager();
+			FragmentTransaction ft = fm.beginTransaction();
+			ft.add(android.R.id.primary, f);
+			ft.commit();
+		}
 	}
 }

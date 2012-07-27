@@ -15,4 +15,10 @@
         android:layout_height="wrap_content"
         android:src="@drawable/bucket_icon_icloud" />
     
+    <Button
+        android:id="@+id/btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0" />
+    
 </LinearLayout>

@@ -83,6 +83,9 @@ public class FragmentLoader extends Activity {
 		rootView.setId(android.R.id.primary);
 		setContentView(rootView);
 
+		if (savedInstanceState != null)
+			return;
+
 		if ("com.dianping.intent.action.LOAD_FRAGMENT".equals(getIntent()
 				.getAction())) {
 			try {
