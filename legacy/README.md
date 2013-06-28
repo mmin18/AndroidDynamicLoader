@@ -1,4 +1,7 @@
 ## Android Dynamic Loader
+
+#### Legacy projects that shows how dynamic loader works.
+
 Sample projects to load dex file (dalvik executable code) and res file (android resources, probably packaged in the same apk file) into the current android runtime environment.
 
 ## ActivityLoader
