@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="workspace_rules" default="help">
+    <dirname property="workspace_rules.basedir" file="${ant.file.workspace_rules}"/>
+    <path id="workspace.antlibs">
+        <pathelement path="${workspace_rules.basedir}/lib/anttasks.jar" />
+    </path>
+    <taskdef resource="anttasks.properties" classpathref="workspace.antlibs"/>
+    <target name="release">
+        <computeworkspacedeps src="." refid="project.library.folder.path" />
+        <subant failonerror="true"
+                buildpathref="project.library.folder.path"
+                antfile="build.xml">
+            <target name="nodeps" />
+            <target name="release" />
+        </subant>
+        <genworkspace src="." />
+    </target>
+    <target name="clean">
+    	<subant target="clean">
+    		<fileset dir="." includes="*/build.xml"/>
+    	</subant>
+    </target>
+    <target name="run" depends="release">
+        <property file="${workspace_rules.basedir}\ant.properties" />
+        <exec executable="adb" failonerror="false">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="force-stop" />
+            <arg value="${app.package}" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="start" />
+            <arg value="-n" />
+            <arg value="${app.loader}" />
+            <arg value="-W" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="forward" />
+            <arg value="tcp:5036" />
+            <arg value="tcp:5036" />
+        </exec>
+    	<uploadworkspace src="." />
+    	<launchworkspace src="." debug="${run.debug}" />
+    </target>
+
+    <target name="-set-debug">
+        <property name="run.debug" value="true" />
+    </target>
+    <target name="debug" depends="-set-debug, run" />
+
+    <target name="help">
+        <!-- displays starts at col 13
+              |13                                                              80| -->
+        <echo>Android Ant Build. Available targets:</echo>
+        <echo>   help:      Displays this help.</echo>
+        <echo>   clean:     Removes output files created by each project.</echo>
+        <echo>   release:   Builds each plugin, generate apk file.</echo>
+        <echo>   run:       Builds and run all plugin in this workspace.</echo>
+        <echo>   debug:     Builds and debug (Waiting For Debugger).</echo>
+    </target>
+</project>

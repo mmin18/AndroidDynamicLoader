@@ -1,0 +1,105 @@
+<project name="anttasks" default="build" basedir=".">
+  <target name="build-anttasks">
+    <mkdir dir="anttasks/bin" />
+    <javac destdir="anttasks/bin" encoding="utf-8" source="1.5" target="1.5" includeantruntime="true">
+      <src path="anttasks/src" />
+    </javac>
+
+    <jar destfile="lib/anttasks.jar">
+      <fileset dir="anttasks/bin" includes="**/*.class" />
+      <fileset dir="anttasks/src" includes="**/*.java" />
+      <fileset file="anttasks/anttasks.properties" />
+    </jar>
+  </target>
+
+  <target name="build-host">
+    <property file="local.properties" />
+    <property file="default.properties" />
+
+    <path id="android.antlibs">
+      <pathelement path="${sdk.dir}/tools/lib/anttasks.jar" />
+    </path>
+    <taskdef resource="anttasks.properties" classpathref="android.antlibs" />
+
+<!-- 
+    <property name="android.platform.tools.dir" location="${sdk.dir}/platform-tools" />
+    <condition property="exe" value=".exe" else=""><os family="windows" /></condition>
+    <property name="aapt" location="${android.platform.tools.dir}/aapt${exe}" />
+
+    <aapt executable="${aapt}"
+      command="package"
+      manifest="${proj1}/AndroidManifest.xml"
+      androidjar="${sdk.dir}/platforms/${target}/android.jar"
+      rfolder="gen"
+      nonConstantId="false"
+      libraryResFolderPathRefid=""
+      libraryRFileRefid=""
+      libraryPackagesRefid=""
+      ignoreAssets="false"
+      proguardFile="proguard.txt">
+      <res path="${proj1}/res" />
+    </aapt>
+    <aapt executable="${aapt}"
+      command="package"
+      manifest="${proj2}/AndroidManifest.xml"
+      androidjar="${sdk.dir}/platforms/${target}/android.jar"
+      rfolder="gen"
+      nonConstantId="false"
+      libraryResFolderPathRefid=""
+      libraryRFileRefid=""
+      libraryPackagesRefid=""
+      ignoreAssets="false"
+      proguardFile="proguard.txt">
+      <res path="${proj2}/res" />
+      <res path="${proj1}/res" />
+    </aapt>
+ -->
+
+    <mkdir dir="gen" />
+    <javac destdir="gen" encoding="utf-8" source="1.5" target="1.5">
+      <src path="../Host/gen" />
+      <include name="**/R.java" />
+    </javac>
+
+    <mkdir dir="bin" />
+    <javac destdir="bin" encoding="utf-8" source="1.5" target="1.5">
+      <classpath>
+        <pathelement path="${sdk.dir}/platforms/${target}/android.jar" />
+        <pathelement path="gen" />
+      </classpath>
+      <src path="../Host/src" />
+      <exclude name="**/impl/**" />
+    </javac>
+
+    <jar destfile="lib/host.jar">
+      <fileset dir="bin" includes="**/*.class" />
+      <fileset dir="../Host/src" includes="**/*.java" excludes="**/impl/**" />
+    </jar>
+
+    <delete dir="gen" />
+    <delete dir="bin" />
+
+  </target>
+
+  <target name="clean-anttasks">
+    <delete dir="anttasks/bin" />
+    <delete file="lib/anttasks.jar" />
+  </target>
+
+  <target name="clean-host">
+    <delete dir="gen" />
+    <delete dir="bin" />
+    <delete file="lib/host.jar" />
+  </target>
+
+  <target name="build">
+    <antcall target="build-anttasks" />
+    <antcall target="build-host" />
+  </target>
+
+  <target name="clean">
+    <antcall target="clean-anttasks" />
+    <antcall target="clean-host" />
+  </target>
+
+</project>

@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="plugin_rules" default="help">
+    <dirname property="plugin_rules.basedir" file="${ant.file.plugin_rules}"/>
+
+    <!--
+        This build file is imported by the project build file. It contains
+        all the targets and tasks necessary to build Android projects, be they
+        regular projects, library projects, or test projects.
+
+        At the beginning of the file is a list of properties that can be overridden
+        by adding them to your ant.properties (properties are immutable, so their
+        first definition sticks and is never changed).
+
+        Follows:
+        - custom task definitions,
+        - more properties (do not override those unless the whole build system is modified).
+        - macros used throughout the build,
+        - base build targets,
+        - debug-specific build targets,
+        - release-specific build targets,
+        - instrument-specific build targets,
+        - test project-specific build targets,
+        - install targets,
+        - help target
+    -->
+
+    <!-- ******************************************************* -->
+    <!-- **************** Overridable Properties *************** -->
+    <!-- ******************************************************* -->
+
+    <!-- You can override these values in your build.xml or ant.properties.
+         Overriding any other properties may result in broken build. -->
+
+    <!-- Tells adb which device to target. You can change this from the command line
+         by invoking "ant -Dadb.device.arg=-d" for device "ant -Dadb.device.arg=-e" for
+         the emulator. -->
+    <property name="adb.device.arg" value="" />
+
+    <!-- fileset exclude patterns (space separated) to prevent
+         files inside src/ from being packaged. -->
+    <property name="android.package.excludes" value="" />
+
+    <!-- set some properties used for filtering/override. If those weren't defined
+         before, then this will create them with empty values, which are then ignored
+         by the custom tasks receiving them. -->
+    <property name="version.code" value="" />
+    <property name="version.name" value="" />
+    <property name="aapt.resource.filter" value="" />
+    <!-- 'aapt.ignore.assets' is the list of file patterns to ignore under /res and /assets.
+         Default is "!.svn:!.git:.*:<dir>_*:!CVS:!thumbs.db:!picasa.ini:!*.scc:*~"
+
+         Overall patterns syntax is:
+           [!][<dir>|<file>][*suffix-match|prefix-match*|full-match]:more:patterns...
+
+         - The first character flag ! avoids printing a warning.
+         - Pattern can have the flag "<dir>" to match only directories
+           or "<file>" to match only files. Default is to match both.
+         - Match is not case-sensitive.
+    -->
+    <property name="aapt.ignore.assets" value="" />
+
+    <!-- compilation options -->
+    <property name="java.encoding" value="UTF-8" />
+    <property name="java.target" value="1.5" />
+    <property name="java.source" value="1.5" />
+    <property name="java.compilerargs" value="" />
+
+    <!-- manifest merger default value -->
+    <property name="manifestmerger.enabled" value="false" />
+
+    <!-- Verbosity -->
+    <property name="verbose" value="false" />
+
+    <!-- ******************************************************* -->
+    <!-- ********************* Custom Tasks ******************** -->
+    <!-- ******************************************************* -->
+
+    <!-- jar file from where the tasks are loaded -->
+    <path id="android.antlibs">
+        <pathelement path="${plugin_rules.basedir}/lib/android-tools/anttasks.jar" />
+    </path>
+
+    <!-- Custom tasks -->
+    <taskdef resource="anttasks.properties" classpathref="android.antlibs" />
+
+    <path id="plugin.antlibs">
+        <pathelement path="${plugin_rules.basedir}/lib/anttasks.jar" />
+    </path>
+    <taskdef resource="anttasks.properties" classpathref="plugin.antlibs"/>
+
+    <!-- ******************************************************* -->
+    <!-- ******************* Other Properties ****************** -->
+    <!-- ******************************************************* -->
+    <!-- overriding these properties may break the build
+         unless the whole file is updated -->
+
+    <!-- Input directories -->
+    <property name="source.dir" value="src" />
+    <property name="source.absolute.dir" location="${source.dir}" />
+    <property name="resource.dir" value="res" />
+    <property name="resource.absolute.dir" location="${resource.dir}" />
+    <property name="asset.dir" value="assets" />
+    <property name="asset.absolute.dir" location="${asset.dir}" />
+    <property name="jar.libs.dir" value="libs" />
+    <property name="jar.libs.absolute.dir" location="${jar.libs.dir}" />
+    <property name="native.libs.absolute.dir" location="libs" />
+
+    <property name="manifest.file" value="AndroidManifest.xml" />
+    <property name="manifest.abs.file" location="${manifest.file}" />
+
+    <!-- Output directories -->
+    <property name="out.dir" value="bin" />
+    <property name="out.absolute.dir" location="${out.dir}" />
+    <property name="gen.absolute.dir" location="${out.dir}/a/gen" />
+    <property name="out.classes.absolute.dir" location="${out.dir}/a/classes" />
+    <property name="out.res.absolute.dir" location="${out.dir}/a/res" />
+    <property name="out.aidl.absolute.dir" location="${out.dir}/a/aidl" />
+    <property name="out.manifest.abs.file" location="${out.dir}/a/AndroidManifest.xml" />
+
+    <!-- tools location -->
+    <property name="android.tools.dir" location="${sdk.dir}/tools" />
+    <property name="android.platform.tools.dir" location="${sdk.dir}/platform-tools" />
+    <condition property="exe" value=".exe" else=""><os family="windows" /></condition>
+    <condition property="bat" value=".bat" else=""><os family="windows" /></condition>
+    <property name="adb" location="${android.platform.tools.dir}/adb${exe}" />
+    <property name="zipalign" location="${android.tools.dir}/zipalign${exe}" />
+
+    <!-- Intermediate files -->
+    <property name="dex.file.name" value="classes.dex" />
+    <property name="intermediate.dex.file" location="${out.absolute.dir}/${dex.file.name}" />
+    <property name="resource.package.file.name" value="${ant.project.name}.ap_" />
+
+
+    <!-- properties for packaging -->
+    <property name="build.packaging.nocrunch" value="true" />
+
+    <!-- whether we need to fork javac.
+         This is only needed on Windows when running Java < 7 -->
+    <condition else="false" property="need.javac.fork">
+        <and>
+            <matches pattern="1\.[56]" string="${java.specification.version}"/>
+            <not>
+                <os family="unix"/>
+            </not>
+        </and>
+    </condition>
+
+    <!-- ******************************************************* -->
+    <!-- ************************ Macros *********************** -->
+    <!-- ******************************************************* -->
+
+    <!-- macro to do a task on if manifest.hasCode is true.
+         elseText attribute is displayed otherwise -->
+    <macrodef name="do-only-if-manifest-hasCode">
+        <attribute name="elseText" default=""/>
+        <element name="task-to-do" implicit="yes" />
+        <sequential>
+        <if condition="${manifest.hasCode}">
+            <then>
+                <task-to-do />
+            </then>
+            <else>
+                <if>
+                    <condition>
+                        <length string="@{elseText}" trim="true" when="greater" length="0" />
+                    </condition>
+                    <then>
+                        <echo level="info">@{elseText}</echo>
+                    </then>
+                </if>
+            </else>
+        </if>
+        </sequential>
+    </macrodef>
+
+    <!-- Configurable macro, which allows to pass as parameters output directory,
+         output dex filename and external libraries to dex (optional) -->
+    <macrodef name="dex-helper">
+        <element name="external-libs" optional="yes" />
+        <attribute name="nolocals" default="false" />
+        <sequential>
+            <!-- sets the primary input for dex. If a pre-dex task sets it to
+                 something else this has no effect -->
+            <property name="out.dex.input.absolute.dir" value="${out.classes.absolute.dir}" />
+
+            <dex executable="${dx}"
+                    output="${intermediate.dex.file}"
+                    nolocals="@{nolocals}"
+                    verbose="${verbose}">
+                <path path="${out.dex.input.absolute.dir}"/>
+                <external-libs />
+            </dex>
+        </sequential>
+    </macrodef>
+
+    <!-- This is macro that enable passing variable list of external jar files to ApkBuilder
+         Example of use:
+         <package-helper>
+             <extra-jars>
+                <jarfolder path="my_jars" />
+                <jarfile path="foo/bar.jar" />
+                <jarfolder path="your_jars" />
+             </extra-jars>
+         </package-helper> -->
+    <macrodef name="package-helper">
+        <sequential>
+            <apkbuilder
+                    outfolder="${out.absolute.dir}"
+                    resourcefile="${resource.package.file.name}"
+                    apkfilepath="${out.packaged.file}"
+                    debugpackaging="${build.is.packaging.debug}"
+                    debugsigning="${build.is.signing.debug}"
+                    verbose="${verbose}"
+                    hascode="${manifest.hasCode}"
+                    previousBuildType=""
+                    buildType="">
+                <dex path="${intermediate.dex.file}"/>
+                <sourcefolder path="${source.absolute.dir}"/>
+            </apkbuilder>
+        </sequential>
+    </macrodef>
+
+    <!-- This is macro which zipaligns in.package and outputs it to out.package. Used by targets
+         debug, -debug-with-emma and release.-->
+    <macrodef name="zipalign-helper">
+        <attribute name="in.package" />
+        <attribute name="out.package" />
+        <sequential>
+            <zipalign
+                    executable="${zipalign}"
+                    input="@{in.package}"
+                    output="@{out.package}"
+                    verbose="${verbose}" />
+        </sequential>
+    </macrodef>
+
+
+    <!-- ******************************************************* -->
+    <!-- ******************** Build Targets ******************** -->
+    <!-- ******************************************************* -->
+
+    <!-- Basic Ant + SDK check -->
+    <target name="-check-env">
+        <checkenv />
+    </target>
+
+    <!-- target to disable building dependencies -->
+    <target name="nodeps">
+        <property name="dont.do.deps" value="true" />
+    </target>
+
+    <!-- generic setup -->
+    <target name="-setup" depends="-check-env">
+        <echo level="info">Project Name: ${ant.project.name}</echo>
+
+        <!-- get the project manifest package -->
+        <xpath input="${manifest.abs.file}"
+                expression="/manifest/@package" output="project.app.package" />
+
+    </target>
+
+    <!-- empty default pre-clean target. Create a similar target in
+         your build.xml and it'll be called instead of this one. -->
+    <target name="-pre-clean"/>
+
+    <!-- clean target -->
+    <target name="clean" depends="-setup, -pre-clean"
+            description="Removes output files created by other targets.">
+        <delete dir="${out.absolute.dir}" verbose="${verbose}" failonerror="false" />
+        <delete dir="${gen.absolute.dir}" verbose="${verbose}" failonerror="false" />
+
+        <!-- get all the libraries -->
+        <if>
+            <condition><not><isset property="dont.do.deps" /></not></condition>
+            <then>
+                <getlibpath libraryFolderPathOut="project.library.folder.path" />
+                <if>
+                    <condition>
+                        <isreference refid="project.library.folder.path" />
+                    </condition>
+                    <then>
+                        <!-- clean the libraries with nodeps since we already
+                             know about all the libraries even the indirect one -->
+                        <subant
+                                buildpathref="project.library.folder.path"
+                                antfile="build.xml"
+                                failonerror="true">
+                            <target name="nodeps" />
+                            <target name="clean" />
+                        </subant>
+                    </then>
+                </if>
+            </then>
+        </if>
+    </target>
+
+    <!-- Pre build setup -->
+    <target name="-build-setup" depends="-setup">
+        <!-- find location of build tools -->
+        <getanybuildtools sdkdir="${sdk.dir}" name="android.build.tools.dir" />
+        <property name="aapt" location="${android.build.tools.dir}/aapt${exe}" />
+        <property name="dx" location="${android.build.tools.dir}/dx${bat}" />
+
+        <echo level="info">Resolving Build Target for ${ant.project.name}...</echo>
+        <!-- load project properties, resolve Android target, library dependencies
+             and set some properties with the results.
+             All property names are passed as parameters ending in -Out -->
+        <gettarget
+                androidJarFileOut="project.target.android.jar"
+                androidAidlFileOut="project.target.framework.aidl"
+                bootClassPathOut="project.target.class.path"
+                targetApiOut="project.target.apilevel"
+                minSdkVersionOut="project.minSdkVersion" />
+
+        <!-- Value of the hasCode attribute (Application node) extracted from manifest file -->
+        <xpath input="${manifest.abs.file}" expression="/manifest/application/@android:hasCode"
+                    output="manifest.hasCode" default="true"/>
+
+        <echo level="info">----------</echo>
+        <echo level="info">Creating output directories if needed...</echo>
+        <mkdir dir="${resource.absolute.dir}" />
+        <mkdir dir="${jar.libs.absolute.dir}" />
+        <mkdir dir="${out.absolute.dir}" />
+        <mkdir dir="${out.res.absolute.dir}" />
+        <do-only-if-manifest-hasCode>
+            <mkdir dir="${gen.absolute.dir}" />
+            <mkdir dir="${out.classes.absolute.dir}" />
+        </do-only-if-manifest-hasCode>
+
+        <echo level="info">----------</echo>
+        <echo level="info">Resolving Dependencies for ${ant.project.name}...</echo>
+        <dependency
+                libraryFolderPathOut="project.library.folder.path"
+                libraryPackagesOut="project.library.packages"
+                libraryManifestFilePathOut="project.library.manifest.file.path"
+                libraryResFolderPathOut="project.library.res.folder.path"
+                libraryBinAidlFolderPathOut="project.library.bin.aidl.folder.path"
+                libraryNativeFolderPathOut="project.library.native.folder.path"
+                jarLibraryPathOut="project.all.jars.path"
+                targetApi="${project.target.apilevel}"
+                verbose="${verbose}" />
+
+        <!-- compile the libraries if any -->
+        <if>
+            <condition>
+                <and>
+                    <isreference refid="project.library.folder.path" />
+                    <not><isset property="dont.do.deps" /></not>
+                </and>
+            </condition>
+            <then>
+                <echo level="info">----------</echo>
+                <echo level="info">Building Libraries with '${project.libraries.target}'...</echo>
+
+                <!-- TODO: print the library folder paths -->
+                <pathconvert property="pathconv" refid="project.library.folder.path" />
+                <echo>${pathconv}</echo>
+
+                <!-- no need to build the deps as we have already
+                     the full list of libraries -->
+                <property name="project.libraries.target" value="release" />
+                <subant failonerror="true"
+                        buildpathref="project.library.folder.path"
+                        antfile="build.xml">
+                    <target name="nodeps" />
+                    <target name="${project.libraries.target}" />
+                </subant>
+            </then>
+        </if>
+    </target>
+
+    <!-- empty default pre-build target. Create a similar target in
+         your build.xml and it'll be called instead of this one. -->
+    <target name="-pre-build"/>
+
+    <!-- Code Generation: compile resources (aapt -> R.java), aidl, renderscript -->
+    <target name="-code-gen">
+        <!-- always merge manifest -->
+        <mergemanifest
+                appManifest="${manifest.abs.file}"
+                outManifest="${out.manifest.abs.file}"
+                enabled="${manifestmerger.enabled}">
+            <library refid="project.library.manifest.file.path" />
+        </mergemanifest>
+
+        <do-only-if-manifest-hasCode
+                elseText="hasCode = false. Skipping aidl/renderscript/R.java">
+            <echo level="info">----------</echo>
+            <echo level="info">Handling Resources...</echo>
+            <aapt executable="${aapt}"
+                    command="package"
+                    verbose="${verbose}"
+                    manifest="${out.manifest.abs.file}"
+                    androidjar="${project.target.android.jar}"
+                    rfolder="${gen.absolute.dir}"
+                    nonConstantId="${android.library}"
+                    libraryResFolderPathRefid=""
+                    libraryPackagesRefid=""
+                    ignoreAssets="${aapt.ignore.assets}"
+                    proguardFile="${out.absolute.dir}/proguard.txt">
+                <res path="${out.res.absolute.dir}" />
+                <res path="${resource.absolute.dir}" />
+            </aapt>
+        </do-only-if-manifest-hasCode>
+    </target>
+
+    <!-- empty default pre-compile target. Create a similar target in
+         your build.xml and it'll be called instead of this one. -->
+    <target name="-pre-compile"/>
+
+    <!-- Compiles this project's .java files into .class files. -->
+    <target name="-compile" depends="-build-setup, -pre-build, -code-gen, -pre-compile">
+        <do-only-if-manifest-hasCode elseText="hasCode = false. Skipping...">
+            <!-- merge the project's own classpath and the tested project's classpath -->
+            <path id="project.javac.classpath">
+                <path refid="project.all.jars.path" />
+            </path>
+            <javac encoding="${java.encoding}"
+                    source="${java.source}" target="${java.target}"
+                    debug="true" extdirs="" includeantruntime="false"
+                    destdir="${out.classes.absolute.dir}"
+                    bootclasspathref="project.target.class.path"
+                    verbose="${verbose}"
+                    classpathref="project.javac.classpath"
+                    fork="${need.javac.fork}">
+                <src path="${source.absolute.dir}" />
+                <src path="${gen.absolute.dir}" />
+                <compilerarg line="${java.compilerargs}" />
+            </javac>
+
+            <echo level="info">Creating output jar file...</echo>
+            <property name="out.library.jar.file" location="${out.absolute.dir}/classes.jar" />
+            <if>
+                <condition>
+                    <length string="${android.package.excludes}" trim="true" when="greater" length="0" />
+                </condition>
+                <then>
+                    <echo level="info">Custom jar packaging exclusion: ${android.package.excludes}</echo>
+                </then>
+            </if>
+
+            <propertybyreplace name="project.app.package.path" input="${project.app.package}" replace="." with="/" />
+
+            <jar destfile="${out.library.jar.file}">
+                <fileset dir="${out.classes.absolute.dir}"
+                        includes="**/*.class"
+                        excludes="${project.app.package.path}/R.class ${project.app.package.path}/R$*.class ${project.app.package.path}/Manifest.class ${project.app.package.path}/Manifest$*.class ${project.app.package.path}/BuildConfig.class"/>
+                <fileset dir="${source.absolute.dir}" excludes="**/*.java ${android.package.excludes}" />
+            </jar>
+        </do-only-if-manifest-hasCode>
+    </target>
+
+    <!-- empty default post-compile target. Create a similar target in
+         your build.xml and it'll be called instead of this one. -->
+    <target name="-post-compile"/>
+
+    <!-- Converts this project's .class files into .dex files -->
+    <target name="-dex" depends="-compile, -post-compile">
+        <do-only-if-manifest-hasCode elseText="hasCode = false. Skipping...">
+            <!-- special case for instrumented builds: need to use no-locals and need
+                 to pass in the emma jar. -->
+            <dex-helper />
+        </do-only-if-manifest-hasCode>
+    </target>
+
+    <!-- Updates the pre-processed PNG cache -->
+    <target name="-crunch">
+        <exec executable="${aapt}" taskName="crunch">
+            <arg value="crunch" />
+            <arg value="-S" />
+            <arg path="${resource.absolute.dir}" />
+            <arg value="-C" />
+            <arg path="${out.res.absolute.dir}" />
+        </exec>
+    </target>
+
+    <!-- Puts the project's resources into the output package file
+         This actually can create multiple resource package in case
+         Some custom apk with specific configuration have been
+         declared in default.properties.
+         -->
+    <target name="-package-resources" depends="-build-setup, -code-gen, -crunch">
+        <!-- only package resources if *not* a library project -->
+        <aapt executable="${aapt}"
+                command="package"
+                versioncode="${version.code}"
+                versionname="${version.name}"
+                debug="false"
+                manifest="${out.manifest.abs.file}"
+                assets="${asset.absolute.dir}"
+                androidjar="${project.target.android.jar}"
+                apkfolder="${out.absolute.dir}"
+                nocrunch="${build.packaging.nocrunch}"
+                resourcefilename="${resource.package.file.name}"
+                resourcefilter="${aapt.resource.filter}"
+                libraryResFolderPathRefid=""
+                libraryPackagesRefid=""
+                previousBuildType=""
+                buildType="default"
+                ignoreAssets="${aapt.ignore.assets}">
+            <res path="${out.res.absolute.dir}" />
+            <res path="${resource.absolute.dir}" />
+            <!-- <nocompress /> forces no compression on any files in assets or res/raw -->
+            <!-- <nocompress extension="xml" /> forces no compression on specific file extensions in assets and res/raw -->
+        </aapt>
+    </target>
+
+    <!-- Packages the application. -->
+    <target name="-package" depends="-dex, -package-resources">
+        <package-helper />
+    </target>
+
+    <target name="-post-package" />
+    <target name="-post-build" />
+
+    <!-- ******************************************************* -->
+    <!-- **************** Site specific targets **************** -->
+    <!-- ******************************************************* -->
+
+    <target name="site">
+        <gensite src="." name="${ant.project.name}" />
+    </target>
+    
+    <!-- ******************************************************* -->
+    <!-- *************** Release specific targets ************** -->
+    <!-- ******************************************************* -->
+    <target name="-set-release-mode">
+        <property name="out.packaged.file" location="${out.absolute.dir}/${ant.project.name}-0.apk" />
+        <property name="out.final.file" location="${out.absolute.dir}/${ant.project.name}.apk" />
+    </target>
+
+    <target name="-release-sign">
+        <sequential>
+            <!-- Zip aligns the APK -->
+            <zipalign-helper
+                    in.package="${out.packaged.file}"
+                    out.package="${out.final.file}" />
+            <echo level="info">Final Package: ${out.final.file}</echo>
+        </sequential>
+    </target>
+
+    <!-- This runs -package-release and -release-nosign first and then runs
+         only if release-sign is true (set in -release-check,
+         called by -release-no-sign)-->
+    <target name="do-release"
+                depends="-set-release-mode, -package, -post-package, -release-sign, -post-build, site"
+                description="Builds the application in release mode.">
+    </target>
+
+    <target name="-check-release" depends="-set-release-mode, site">
+        <uptodate property="release.nochanges" targetfile="${out.final.file}">
+            <srcfiles dir="${source.absolute.dir}" includes="**/*.java"/>
+            <srcfiles dir="${resource.absolute.dir}" includes="**"/>
+        </uptodate>
+    </target>
+
+    <target name="release"
+                depends="-check-release" unless="release.nochanges">
+        <!-- Some changes in resources may cause issue. So rebuild this plugin -->
+        <delete dir="${out.absolute.dir}/a" verbose="${verbose}" failonerror="false" />
+
+        <antcall target="do-release" />
+    </target>
+
+    <target name="run"
+                depends="release"
+                description="start app, upload codes, and launch.">
+        <property file="${plugin_rules.basedir}\ant.properties" />
+        <exec executable="adb" failonerror="false">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="force-stop" />
+            <arg value="${app.package}" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="start" />
+            <arg value="-n" />
+            <arg value="${app.loader}" />
+            <arg value="-W" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="forward" />
+            <arg value="tcp:5036" />
+            <arg value="tcp:5036" />
+        </exec>
+        <uploadsite src="." name="${ant.project.name}" />
+        <launchsite src="." name="${ant.project.name}" debug="${run.debug}" />
+    </target>
+
+    <target name="-set-debug">
+        <property name="run.debug" value="true" />
+    </target>
+    <target name="debug" depends="-set-debug, run" />
+
+    <!-- ******************************************************* -->
+    <!-- ************************* Help ************************ -->
+    <!-- ******************************************************* -->
+
+    <target name="help">
+        <!-- displays starts at col 13
+              |13                                                              80| -->
+        <echo>Android Ant Build. Available targets:</echo>
+        <echo>   help:      Displays this help.</echo>
+        <echo>   clean:     Removes output files created by other targets.</echo>
+        <echo>   release:   Builds this plugin, generate apk file.</echo>
+        <echo>   run:       Builds and run this plugin.</echo>
+        <echo>   debug:     Builds and debug (Waiting For Debugger).</echo>
+    </target>
+</project>
