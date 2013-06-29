@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+    
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dip"
+        android:text="动态加载框架测试应用\n所有页面均由插件开发，在联网状态下从服务器实时下载最新版本，并在用户触发时加载如内存并运行。\n无需升级即可使用最新的特性，并可以做到灰度发布、AB测试等特性。" />
+    
+    <Button
+        android:id="@+id/shoplist"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Shop List" />
+
+</LinearLayout>
