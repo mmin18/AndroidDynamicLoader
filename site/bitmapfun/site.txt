@@ -7,21 +7,21 @@
       "url": "https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/bitmapfun/lib.bitmapfun.20130629.1.apk"
     },
     {
-      "id": "sample.bitmapfun..20130629.1",
+      "id": "sample.bitmapfun.20130629.1",
       "md5": "b5633f34247fc85612685ff64d3b163f",
-      "deps": ["lib.bitmapfun..20130629.1"],
+      "deps": ["lib.bitmapfun.20130629.1"],
       "url": "https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/bitmapfun/sample.bitmapfun.20130629.1.apk"
     }
   ],
   "fragments": [
     {
-      "host": "image",
-      "name": "com.example.android.bitmapfun.ui.ImageDetailFragment",
+      "host": "bitmapfun",
+      "name": "com.example.android.bitmapfun.ui.ImageGridFragment",
       "code": "sample.bitmapfun.20130629.1"
     },
     {
-      "host": "bitmapfun",
-      "name": "com.example.android.bitmapfun.ui.ImageGridFragment",
+      "host": "image",
+      "name": "com.example.android.bitmapfun.ui.ImageDetailFragment",
       "code": "sample.bitmapfun.20130629.1"
     }
   ],
