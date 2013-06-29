@@ -2,6 +2,7 @@ package com.dianping.loader;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -31,7 +32,35 @@ public class HomeActivity extends MyActivity {
 
 		siteUrl = (TextView) findViewById(R.id.siteurl);
 		findViewById(R.id.go).setOnClickListener(clickListener);
+		findViewById(R.id.go_last).setOnClickListener(clickListener);
 		findViewById(R.id.go_helloworld).setOnClickListener(clickListener);
+	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+
+		File dir = new File(getFilesDir(), "repo");
+		File site = new File(dir, "site.txt");
+		findViewById(R.id.go_last).setEnabled(site.length() > 0);
+		TextView lastUrl = (TextView) findViewById(R.id.last_url);
+		lastUrl.setText(null);
+		if (site.length() > 0) {
+			File file = new File(dir, "lastUrl.txt");
+			try {
+				FileInputStream fis = new FileInputStream(file);
+				byte[] bytes = new byte[fis.available()];
+				fis.read(bytes);
+				fis.close();
+				String url = new String(bytes, "UTF-8");
+				lastUrl.setText(url);
+			} catch (Exception e) {
+				SiteSpec lastSite = MyApplication.instance().readSite();
+				String url = MyApplication.PRIMARY_SCHEME + "://"
+						+ lastSite.fragments()[0].host();
+				lastUrl.setText(url);
+			}
+		}
 	}
 
 	private final View.OnClickListener clickListener = new View.OnClickListener() {
@@ -41,6 +70,10 @@ public class HomeActivity extends MyActivity {
 				Worker worker = new Worker(siteUrl.getText().toString());
 				worker.start();
 				v.setEnabled(false);
+			} else if (v.getId() == R.id.go_last) {
+				String url = ((TextView) findViewById(R.id.last_url)).getText()
+						.toString();
+				startActivity(url);
 			} else if (v.getId() == R.id.go_helloworld) {
 				siteUrl.setText("https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/helloworld/site.txt");
 				findViewById(R.id.go).performClick();
@@ -84,6 +117,7 @@ public class HomeActivity extends MyActivity {
 				final SiteSpec fSite = new SiteSpec(json);
 
 				File dir = new File(getFilesDir(), "repo");
+				new File(dir, "lastUrl.txt").delete();
 				dir.mkdir();
 				File local = new File(dir, "site.txt");
 				File tmp = new File(dir, "site_tmp");

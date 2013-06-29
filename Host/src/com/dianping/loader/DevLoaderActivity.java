@@ -226,6 +226,7 @@ public class DevLoaderActivity extends MyActivity {
 					JSONObject json = new JSONObject(str);
 					site = new SiteSpec(json);
 					File file = new File(getFilesDir(), "repo");
+					new File(file, "lastUrl.txt").delete();
 					file = new File(file, "site.txt");
 					FileOutputStream fos = new FileOutputStream(file);
 					fos.write(buf, 0, n);
@@ -256,6 +257,15 @@ public class DevLoaderActivity extends MyActivity {
 					new WaitForDebugger(i).start();
 				} else {
 					startActivity(i);
+				}
+
+				try {
+					File file = new File(getFilesDir(), "repo");
+					file = new File(file, "lastUrl.txt");
+					FileOutputStream fos = new FileOutputStream(file);
+					fos.write(sb.toString().getBytes("UTF-8"));
+					fos.close();
+				} catch (Exception e) {
 				}
 			}
 		}

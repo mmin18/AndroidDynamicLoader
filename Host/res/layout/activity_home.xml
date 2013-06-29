@@ -24,13 +24,31 @@
         android:inputType="textUri" />
 
     <Button
-        android:id="@+id/go_helloworld"
+        android:id="@+id/go_last"
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/siteurl"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="56dip"
+        android:layout_marginTop="60dip"
+        android:text="Launch last plugin" />
+
+    <TextView
+        android:id="@+id/last_url"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/go_last"
+        android:layout_centerHorizontal="true"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <Button
+        android:id="@+id/go_helloworld"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/go_last"
+        android:layout_marginTop="60dip"
+        android:layout_centerHorizontal="true"
         android:text="HelloWorld demo" />
 
 </RelativeLayout>
