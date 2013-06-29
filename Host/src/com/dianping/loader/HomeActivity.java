@@ -34,6 +34,7 @@ public class HomeActivity extends MyActivity {
 		findViewById(R.id.go).setOnClickListener(clickListener);
 		findViewById(R.id.go_last).setOnClickListener(clickListener);
 		findViewById(R.id.go_helloworld).setOnClickListener(clickListener);
+		findViewById(R.id.go_bitmapfun).setOnClickListener(clickListener);
 	}
 
 	@Override
@@ -76,6 +77,9 @@ public class HomeActivity extends MyActivity {
 				startActivity(url);
 			} else if (v.getId() == R.id.go_helloworld) {
 				siteUrl.setText("https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/helloworld/site.txt");
+				findViewById(R.id.go).performClick();
+			} else if (v.getId() == R.id.go_bitmapfun) {
+				siteUrl.setText("https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/bitmapfun/site.txt");
 				findViewById(R.id.go).performClick();
 			}
 		}

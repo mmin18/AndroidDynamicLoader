@@ -2,5 +2,6 @@
 <resources>
 
     <string name="app_name">Host</string>
+    <string name="app_description">The host.apk is a empty shell. It provides the basic environment and load the plugins. The plugins dependency is defined in site.txt.\n\nThis is the loader interface. You need to provide the site.txt to launch the specific plugin. It also provides a backdoor for plugin development.</string>
 
 </resources>

@@ -51,4 +51,23 @@
         android:layout_centerHorizontal="true"
         android:text="HelloWorld demo" />
 
+    <Button
+        android:id="@+id/go_bitmapfun"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/go_helloworld"
+        android:layout_centerHorizontal="true"
+        android:text="BitmapFun demo" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:background="#ddd"
+        android:padding="6dp"
+        android:text="@string/app_description" />
+
 </RelativeLayout>
