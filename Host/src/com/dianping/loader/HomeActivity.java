@@ -9,19 +9,44 @@ import java.net.URL;
 
 import org.json.JSONObject;
 
-import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.dianping.app.MyActivity;
+import com.dianping.app.MyApplication;
 import com.dianping.loader.model.SiteSpec;
 
-public class HomeActivity extends Activity {
+public class HomeActivity extends MyActivity {
+	TextView siteUrl;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
+
+		siteUrl = (TextView) findViewById(R.id.siteurl);
+		findViewById(R.id.go).setOnClickListener(clickListener);
+		findViewById(R.id.go_helloworld).setOnClickListener(clickListener);
 	}
+
+	private final View.OnClickListener clickListener = new View.OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			if (v.getId() == R.id.go) {
+				Worker worker = new Worker(siteUrl.getText().toString());
+				worker.start();
+				v.setEnabled(false);
+			} else if (v.getId() == R.id.go_helloworld) {
+				siteUrl.setText("https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/helloworld/site.txt");
+				findViewById(R.id.go).performClick();
+			}
+		}
+	};
 
 	private class Worker extends Thread {
 		private String url;
@@ -38,8 +63,6 @@ public class HomeActivity extends Activity {
 				HttpURLConnection conn = (HttpURLConnection) url
 						.openConnection();
 				conn.setConnectTimeout(15000);
-				// conn.setRequestProperty("User-Agent",
-				// Environment.mapiUserAgent());
 				InputStream ins = conn.getInputStream();
 				ByteArrayOutputStream bos = new ByteArrayOutputStream(16 * 1024);
 				byte[] buf = new byte[1024 * 4]; // 4k buffer
@@ -77,15 +100,23 @@ public class HomeActivity extends Activity {
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						// TODO: succeed
+						findViewById(R.id.go).setEnabled(true);
+						String url = MyApplication.PRIMARY_SCHEME + "://"
+								+ fSite.fragments()[0].host();
+						Intent i = new Intent(Intent.ACTION_VIEW,
+								Uri.parse(url));
+						i.putExtra("_site", fSite);
+						startActivity(i);
 					}
 				});
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Log.w("loader", "fail to download site from " + siteUrl, e);
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
-						// TODO: failed
+						findViewById(R.id.go).setEnabled(true);
+						Toast.makeText(HomeActivity.this, e.toString(),
+								Toast.LENGTH_LONG).show();
 					}
 				});
 			}
