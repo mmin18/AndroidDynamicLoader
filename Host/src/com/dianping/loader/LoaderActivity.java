@@ -6,11 +6,14 @@ import java.util.List;
 
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -234,6 +237,15 @@ public class LoaderActivity extends MyActivity {
 					ViewGroup.LayoutParams.WRAP_CONTENT,
 					ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
 			rootView.addView(pb);
+
+			// show file list and status
+			TextView tv = new TextView(LoaderActivity.this);
+			tv.setTag("FileListAndStatus");
+			tv.setLayoutParams(new FrameLayout.LayoutParams(
+					ViewGroup.LayoutParams.FILL_PARENT,
+					ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP));
+			rootView.addView(tv);
+			updateFileListAndStatus();
 		}
 
 		private void setFail(int errorCode, Exception ex, boolean retryBtn,
@@ -296,9 +308,46 @@ public class LoaderActivity extends MyActivity {
 			stop();
 		}
 
+		void updateFileListAndStatus() {
+			TextView tv = (TextView) rootView
+					.findViewWithTag("FileListAndStatus");
+			if (tv == null)
+				return;
+			if (depsList == null || depsList.length == 0) {
+				tv.setText(null);
+				return;
+			}
+			ForegroundColorSpan ready = new ForegroundColorSpan(Color.BLACK);
+			ForegroundColorSpan idle = new ForegroundColorSpan(Color.GRAY);
+			ForegroundColorSpan running = new ForegroundColorSpan(Color.BLUE);
+			SpannableStringBuilder sb = new SpannableStringBuilder();
+			for (FileSpec f : depsList) {
+				int start = sb.length();
+				sb.append(f.url());
+				int end = sb.length();
+				Object status = repoManager.getStatus(f.id());
+				if (status == RepositoryManager.STATUS_DONE) {
+					sb.setSpan(ready, start, end, 0);
+				} else if (status == RepositoryManager.STATUS_IDLE) {
+					sb.setSpan(idle, start, end, 0);
+				} else if (status == RepositoryManager.STATUS_RUNNING) {
+					sb.setSpan(running, start, end, 0);
+				}
+				sb.append('\n');
+			}
+			tv.setText(sb);
+		}
+
 		@Override
 		public void onStatusChanged(FileSpec file, String newStatus) {
 			// in background thread
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					updateFileListAndStatus();
+				}
+			});
+
 			if (newStatus == RepositoryManager.STATUS_RUNNING)
 				return;
 			FileSpec[] depsList = this.depsList;
