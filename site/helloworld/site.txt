@@ -1,14 +1,21 @@
 {
-  "id": "sample.helloworld.20130629.1",
+  "id": "sample.helloworld.20130703.1",
   "files": [{
-    "id": "sample.helloworld.20130629.1",
-    "md5": "dd63f35c4fdd323db5acaa2704819edb",
-    "url": "https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/helloworld/sample.helloworld.20130629.1.apk"
+    "id": "sample.helloworld.20130703.1",
+    "md5": "69d3d81fa8cc5f05f1daab16dae89f4c",
+    "url": "https://raw.github.com/mmin18/AndroidDynamicLoader/master/site/helloworld/sample.helloworld.20130703.1.apk"
   }],
-  "fragments": [{
-    "host": "helloworld",
-    "name": "sample.helloworld.HelloFragment",
-    "code": "sample.helloworld.20130629.1"
-  }],
-  "version": "20130629.1"
+  "fragments": [
+    {
+      "host": "helloworld",
+      "name": "sample.helloworld.HelloFragment",
+      "code": "sample.helloworld.20130703.1"
+    },
+    {
+      "host": "pickname",
+      "name": "sample.helloworld.PickerFragment",
+      "code": "sample.helloworld.20130703.1"
+    }
+  ],
+  "version": "20130703.1"
 }

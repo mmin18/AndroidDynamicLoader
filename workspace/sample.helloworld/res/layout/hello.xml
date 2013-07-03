@@ -6,9 +6,18 @@
     android:orientation="vertical" >
     
     <TextView
+        android:id="@+id/text_hello"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Hello World!" />
+
+    <Button
+        android:id="@+id/start_url"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dip"
+        android:text="Pick Name" />
 
 </LinearLayout>
