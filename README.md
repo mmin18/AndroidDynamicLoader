@@ -46,6 +46,33 @@ Each host is mapped to a single fragment, you define the url mapping table in **
 
 See the [helloworld fragment.properties](https://github.com/mmin18/AndroidDynamicLoader/blob/master/workspace/sample.helloworld/fragment.properties) sample.
 
+## About Resources
+
+In the plugins, we pack resources and codes in the same package. We use R.java as the index of resources.
+
+But instead of using **context.getResources()**, we use **MyResources.getResource(Me.class)** to get the resources which in the same package as **Me.class**.
+
+Here is a sample in HelloFragment.java
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+
+		// MyResources manages the resources in specific package.
+		// Using a Class object to obtain an instance of MyResources.
+
+		// In this case, hello.xml is in the same package as HelloFragment class
+
+		MyResources res = MyResources.getResource(HelloFragment.class);
+
+		// Using MyResources.inflate() if you want to inflate some layout in
+		// this package.
+		return res.inflate(getActivity(), R.layout.hello, container, false);
+
+	}
+
+You can use MyResources to get drawable, string, or inflate layout.
+
 ## Folders
 
 `/Host` contains the host application (build as host.apk).
