@@ -10,7 +10,7 @@
         <subant failonerror="true"
                 buildpathref="project.library.folder.path"
                 antfile="build.xml">
-            <target name="-build" />
+            <target name="-apk" />
         </subant>
         <genworkspace src="." />
     </target>
