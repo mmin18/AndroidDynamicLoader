@@ -111,7 +111,7 @@ public class LaunchSite extends Task {
 
 		try {
 			String crlf = "\r\n";
-			Socket s = new Socket(InetAddress.getByName("localhost"), 5036);
+			Socket s = new Socket(InetAddress.getByName("127.0.0.1"), 5036);
 			OutputStream os = s.getOutputStream();
 			StringBuilder sb = new StringBuilder();
 			sb.append(debug ? "GET /debug/" : "GET /go/").append(defaultHost)

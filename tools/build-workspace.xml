@@ -6,17 +6,16 @@
     </path>
     <taskdef resource="anttasks.properties" classpathref="workspace.antlibs"/>
     <target name="release">
-        <computeworkspacedeps src="." refid="project.library.folder.path" />
+        <computedeps src="." refid="project.library.folder.path" />
         <subant failonerror="true"
                 buildpathref="project.library.folder.path"
                 antfile="build.xml">
-            <target name="nodeps" />
-            <target name="release" />
+            <target name="-build" />
         </subant>
         <genworkspace src="." />
     </target>
     <target name="clean">
-    	<subant target="clean">
+    	<subant target="-clean">
     		<fileset dir="." includes="*/build.xml"/>
     	</subant>
     </target>
