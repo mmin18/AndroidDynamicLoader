@@ -97,7 +97,7 @@ public class UploadSite extends Task {
 
 		try {
 			String crlf = "\r\n";
-			Socket s = new Socket(InetAddress.getByName("localhost"), 5036);
+			Socket s = new Socket(InetAddress.getByName("127.0.0.1"), 5036);
 			OutputStream os = s.getOutputStream();
 			StringBuilder sb = new StringBuilder();
 			sb.append("PUT /site  HTTP/1.0").append(crlf);
@@ -117,7 +117,7 @@ public class UploadSite extends Task {
 	public static void upload(String path, byte[] bytes) {
 		try {
 			final String crlf = "\r\n";
-			Socket s = new Socket(InetAddress.getByName("localhost"), 5036);
+			Socket s = new Socket(InetAddress.getByName("127.0.0.1"), 5036);
 			OutputStream os = s.getOutputStream();
 			StringBuilder sb = new StringBuilder();
 			sb.append("PUT ").append(path).append(" HTTP/1.0").append(crlf);

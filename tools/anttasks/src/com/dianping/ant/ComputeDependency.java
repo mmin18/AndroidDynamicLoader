@@ -10,7 +10,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.Path;
 
-public class ComputeWorkspaceDependency extends Task {
+public class ComputeDependency extends Task {
 
 	private File dir;
 	private String refid;
@@ -39,8 +39,14 @@ public class ComputeWorkspaceDependency extends Task {
 		}
 
 		ArrayList<File> deps = new ArrayList<File>();
-		for (File proj : dir.listFiles()) {
-			appendDependency(proj, deps);
+		if (new File(dir, "AndroidManifest.xml").isFile()) {
+			// it's a project
+			appendDependency(dir, deps);
+		} else {
+			// it's a workspace
+			for (File proj : dir.listFiles()) {
+				appendDependency(proj, deps);
+			}
 		}
 		Path p = new Path(getProject());
 		for (File f : deps) {
