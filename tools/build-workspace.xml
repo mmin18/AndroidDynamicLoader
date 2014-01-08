@@ -41,13 +41,40 @@
             <arg value="tcp:5036" />
         </exec>
     	<uploadworkspace src="." />
-    	<launchworkspace src="." debug="${run.debug}" />
+    	<launchworkspace src="." />
     </target>
 
-    <target name="-set-debug">
-        <property name="run.debug" value="true" />
+    <target name="debug" depends="release">
+        <property file="${workspace_rules.basedir}\ant.properties" />
+        <exec executable="adb" failonerror="false">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="force-stop" />
+            <arg value="${app.package}" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="set-debug-app" />
+            <arg value="${app.package}" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="shell" />
+            <arg value="am" />
+            <arg value="start" />
+            <arg value="-n" />
+            <arg value="${app.loader}" />
+            <arg value="-W" />
+            <arg value="-D" />
+        </exec>
+        <exec executable="adb" failonerror="true">
+            <arg value="forward" />
+            <arg value="tcp:5036" />
+            <arg value="tcp:5036" />
+        </exec>
+        <uploadworkspace src="." />
+        <launchworkspace src="." debug="true" />
     </target>
-    <target name="debug" depends="-set-debug, run" />
 
     <target name="help">
         <!-- displays starts at col 13
@@ -57,6 +84,6 @@
         <echo>   clean:     Removes output files created by each project.</echo>
         <echo>   release:   Builds each plugin, generate apk file.</echo>
         <echo>   run:       Builds and run all plugin in this workspace.</echo>
-        <echo>   debug:     Builds and debug (Waiting For Debugger).</echo>
+        <echo>   debug:     Builds and debug (run and attach to debugger).</echo>
     </target>
 </project>
