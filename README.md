@@ -4,6 +4,10 @@ Android Dynamic Loader is a plugin system. The host application is like a browse
 
 You can download the demo from <https://github.com/mmin18/AndroidDynamicLoader/raw/master/host.apk> (35k).
 
+![HelloWorldDemo](https://raw.github.com/mmin18/AndroidDynamicLoader/master/HelloWorldDemo.png)
+
+![BitmapFunDemo](https://raw.github.com/mmin18/AndroidDynamicLoader/master/BitmapFunDemo.png)
+
 ## How to run the sample plugins
 
 The sample plugins is under **workspace** folder, but do not try to run them directly, it won't start.
