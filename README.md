@@ -31,7 +31,7 @@ Since we don't specific a default entry in **workspace.properties**, it will pop
 
 In a normal Android application, we use Activity as the root UI container. But since Activity is registered in AndroidManifest.xml, and we can't modify manifest in runtime, we must find an alternative UI container - Fragment.
 
-The Fragment itself, interduced in Android 3.0 Honeycomb, is a perfect UI container, and it has lifecycle and state management.
+The Fragment itself, introduced in Android 3.0 Honeycomb, is a perfect UI container, and it has lifecycle and state management.
 
 Once the plugin and its dependency is downloaded, an Activity (MainActivity.java) will be started, create an instance of the specific fragment, and add the fragment into the root view.
 
