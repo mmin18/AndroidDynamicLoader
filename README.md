@@ -2,11 +2,24 @@
 
 Android Dynamic Loader is a plugin system. The host application is like a browser, but instead of load web pages, it load plugins which runs natively on Android system.
 
+This implementation is using Andoid .apk file as plugin container.
+
 You can download the demo from <https://github.com/mmin18/AndroidDynamicLoader/raw/master/host.apk> (35k).
 
 ![HelloWorldDemo](https://raw.github.com/mmin18/AndroidDynamicLoader/master/HelloWorldDemo.png)
 
 ![BitmapFunDemo](https://raw.github.com/mmin18/AndroidDynamicLoader/master/BitmapFunDemo.png)
+
+## Folders
+
+`/Host` contains the host application (build as host.apk).
+
+`/tools/update.sh` checks your environment and helps you config your plugins. You should always run it once after git clone or create a new plugin.
+
+`/workspace/sample.helloworld` is a most simple plugin.
+`/workspace/sample.helloworld/fragment.properties` defines the url mapping of your fragments.
+
+`/site/***/site.txt` is the definition file for all the plugins files, dependency and fragments url mapping table.
 
 ## How to run the sample plugins
 
@@ -37,19 +50,6 @@ Once the plugin and its dependency is downloaded, an Activity (MainActivity.java
 
 See the [HelloFragment.java](https://github.com/mmin18/AndroidDynamicLoader/blob/master/workspace/sample.helloworld/src/sample/helloworld/HelloFragment.java) sample.
 
-## About URL Mapping
-
-Since we use Fragment as UI container, each page is implemented in Fragment instead of Activity. So how do we start a new page?
-
-We use URL, just like a browser does. For instance, in a browser, we open `http://mydomain.com/helloworld.html`. In plugins, we open `app://helloworld`.
-
-	Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("app://helloworld"));
-	startActivity(i);
-
-Each host is mapped to a single fragment, you define the url mapping table in **project/fragment.properties**.
-
-See the [helloworld fragment.properties](https://github.com/mmin18/AndroidDynamicLoader/blob/master/workspace/sample.helloworld/fragment.properties) sample.
-
 ## About Resources
 
 In the plugins, we pack resources and codes in the same package. We use R.java as the index of resources.
@@ -77,14 +77,16 @@ Here is a sample in HelloFragment.java
 
 You can use MyResources to get drawable, string, or inflate layout.
 
-## Folders
 
-`/Host` contains the host application (build as host.apk).
+## About URL Mapping
 
-`/tools/update.sh` checks your environment and helps you config your plugins. You should always run it once after git clone or create a new plugin.
+Since we use Fragment as UI container, each page is implemented in Fragment instead of Activity. So how do we start a new page?
 
-`/workspace/sample.helloworld` is a most simple plugin.
-`/workspace/sample.helloworld/fragment.properties` defines the url mapping of your fragments.
+We use URL, just like a browser does. For instance, in a browser, we open `http://mydomain.com/helloworld.html`. In plugins, we open `app://helloworld`.
 
-`/site/***/site.txt` is the definition file for all the plugins files, dependency and fragments url mapping table.
+	Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("app://helloworld"));
+	startActivity(i);
 
+Each host is mapped to a single fragment, you define the url mapping table in **project/fragment.properties**.
+
+See the [helloworld fragment.properties](https://github.com/mmin18/AndroidDynamicLoader/blob/master/workspace/sample.helloworld/fragment.properties) sample.
