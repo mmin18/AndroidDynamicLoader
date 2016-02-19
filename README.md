@@ -17,12 +17,12 @@ First you need to install **host.apk** on your phone (or you can build the Host 
 Also you need to make sure the Android SDK and Ant is installed and android-sdk/tools, android-sdk/platform-tools, ant is in your **PATH**.
 
 Run the following commands:
-
-	chmod +x tools/update.sh
-	tools/update.sh workspace
-	cd workspace
-	ant run
-
+```bash
+chmod +x tools/update.sh
+tools/update.sh workspace
+cd workspace
+ant run
+```
 If it shows "device not found", make sure your phone is connected or simulator is running. "adb devices" will tell.
 
 Since we don't specific a default entry in **workspace.properties**, it will popup a window and let you choose one. I suggest bitmapfun.
@@ -42,10 +42,10 @@ See the [HelloFragment.java](https://github.com/mmin18/AndroidDynamicLoader/blob
 Since we use Fragment as UI container, each page is implemented in Fragment instead of Activity. So how do we start a new page?
 
 We use URL, just like a browser does. For instance, in a browser, we open `http://mydomain.com/helloworld.html`. In plugins, we open `app://helloworld`.
-
+```java
 	Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse("app://helloworld"));
 	startActivity(i);
-
+```
 Each host is mapped to a single fragment, you define the url mapping table in **project/fragment.properties**.
 
 See the [helloworld fragment.properties](https://github.com/mmin18/AndroidDynamicLoader/blob/master/workspace/sample.helloworld/fragment.properties) sample.
@@ -57,24 +57,24 @@ In the plugins, we pack resources and codes in the same package. We use R.java a
 But instead of using **context.getResources()**, we use **MyResources.getResource(Me.class)** to get the resources which in the same package as **Me.class**.
 
 Here is a sample in HelloFragment.java
+```java
+@Override
+public View onCreateView(LayoutInflater inflater, ViewGroup container,
+		Bundle savedInstanceState) {
 
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
+	// MyResources manages the resources in specific package.
+	// Using a Class object to obtain an instance of MyResources.
 
-		// MyResources manages the resources in specific package.
-		// Using a Class object to obtain an instance of MyResources.
+	// In this case, hello.xml is in the same package as HelloFragment class
 
-		// In this case, hello.xml is in the same package as HelloFragment class
+	MyResources res = MyResources.getResource(HelloFragment.class);
 
-		MyResources res = MyResources.getResource(HelloFragment.class);
+	// Using MyResources.inflate() if you want to inflate some layout in
+	// this package.
+	return res.inflate(getActivity(), R.layout.hello, container, false);
 
-		// Using MyResources.inflate() if you want to inflate some layout in
-		// this package.
-		return res.inflate(getActivity(), R.layout.hello, container, false);
-
-	}
-
+}
+```
 You can use MyResources to get drawable, string, or inflate layout.
 
 ## Folders
